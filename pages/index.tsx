@@ -1,118 +1,190 @@
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
-
-const inter = Inter({ subsets: ['latin'] })
+import { useConversation } from "@/utils/use-conversation"
+import { Conversation, Message, Client as ConversationClient, } from "@twilio/conversations";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const client = useConversation();
+
   return (
-    <main
-      className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
-    >
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">pages/index.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <main>
+      <div className="flex gap-6 p-6">
+        <div className="w-1/2">
+          <FormUser isDisabled={client.convClientState?.status === 'success'} onSubmit={(e) => {
+            const username = e.currentTarget.username.value
+            const password = e.currentTarget.password.value
+            client.signIn(username, password);
+          }} />
+        </div>
+        <div className="w-1/2 mt-12">
+          <div className="border-2 border-gray-100 rounded-lg p-3">
+            <div>
+              Status : {client.convClientState?.status ?? '-'}
+            </div>
+            <div>
+              conversationsReady : {client.convClientState?.conversationsReady ?? '-'}
+            </div>
+            <div>
+              statusString : {client.convClientState?.statusString ?? '-'}
+            </div>
+          </div>
+          <div className="border-2 border-gray-100 rounded-lg p-3 mt-2">
+            <h3 className="text-md font-bold">Join Room</h3>
+            <input type="text" className="input input-bordered w-full mt-2" placeholder="Room Name Unique" onKeyDown={(e) => {
+              e.key === 'Enter' && client.joinOrCreateConverstaion(e.currentTarget.value)
+            }} />
+          </div>
         </div>
       </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Discover and deploy boilerplate example Next.js&nbsp;projects.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+      <ConversationManager
+        conversations={client.conversations ?? []}
+        onClickConversation={(conv) => {
+          client.setSelectedConversation(conv);
+        }}
+        selectedConversation={client.selectedConversation}
+      />
     </main>
   )
 }
+
+function FormUser({ isDisabled, onSubmit }: {
+  isDisabled: boolean,
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void
+}) {
+  return (
+    <form onSubmit={e => {
+      e.preventDefault()
+      onSubmit(e)
+    }} className="m-3 w-full">
+      <h3 className="text-xl mb-3 font-bold">
+        Form User
+      </h3>
+      <div className="flex flex-col gap-3">
+        <input disabled={isDisabled} type="text" name="username" className="input input-bordered" placeholder="username" />
+        <input disabled={isDisabled} type="password" name="password" className="input input-bordered" placeholder="Password" />
+        <button disabled={isDisabled} className="btn btn-primary">
+          Login
+        </button>
+      </div>
+    </form>
+  )
+}
+
+function ConversationManager({ conversations, onClickConversation, selectedConversation }: {
+  conversations: Conversation[],
+  onClickConversation: (conversation: Conversation) => void,
+  selectedConversation?: Conversation,
+}) {
+
+  useEffect(() => {
+    if (conversations.length > 0) {
+      onClickConversation(conversations[0]);
+    }
+  }, [])
+
+  return (
+    <div className="flex m-3 gap-3">
+      <div className="w-4/12 border-2 p-3 border-gray-200 rounded-lg flex flex-col max-h-[80vh] overflow-auto">
+        {conversations.map((item, index) => (
+          <ConversationTag key={item.sid} conversation={item} onClick={onClickConversation}/>
+        ))}
+      </div>
+      <div className="w-8/12 border-2 border-gray-200 rounded-lg">
+        {selectedConversation && <ChatRoom key={selectedConversation.sid} conversation={selectedConversation} />}
+      </div>
+    </div>
+  )
+}
+
+function ConversationTag({conversation, onClick}: {conversation: Conversation, onClick: (conversation: Conversation) => void}){
+  const [messages, setMessages] = useState<Message[]>([]);
+  useEffect(() => {
+    conversation.getMessages(1).then((message) => {
+      setMessages(message.items);
+    })
+    conversation.on('updated', ({updateReasons,conversation}) => {
+      console.log(`${conversation.sid}, do update with reason ${updateReasons.join(',')}`);
+      conversation.getMessages(1).then((message) => {
+        setMessages(message.items);
+      })
+      // setMessages([messsage]);
+    })
+  }, [])
+
+  const shortMessage = (message: string) => {
+    return message.length > 20 ? message.substring(0, 20) + '...' : message;
+  }
+
+  return (
+    <div className="flex gap-3 border-2 border-white hover:border-gray-100 p-2 cursor-pointer"
+      onClick={() => onClick(conversation)}
+    >
+      <div className="w-10 h-10 rounded-full bg-gray-200"></div>
+      <div className="flex flex-col">
+        <span className="font-bold">
+          {conversation.uniqueName}
+        </span>
+        {messages[0] && <span className="text-sm">
+          {messages[0]?.author} : {shortMessage(messages[0]?.body ?? '-')}
+        </span>}
+      </div>
+    </div>
+  )
+}
+
+function ChatRoom({ conversation }: { conversation: Conversation }) {
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  useEffect(() => {
+    conversation.getMessages().then((message) => {
+      setMessages(message.items);
+    })
+    conversation.on('messageAdded', (message) => {
+      setMessages((prev) => {
+        if(prev?.find(item => message.sid === item.sid)){
+          return prev;
+        }
+        return [...prev, message];
+      });
+    })
+  }, [])
+
+  return (
+    <div className="flex flex-col max-h-[80vh]">
+      <div className="h-24 flex items-center gap-3 shadow-sm p-3">
+        <div className="w-10 h-10 rounded-full bg-gray-200"></div>
+        <span className="font-bold">
+          {conversation.uniqueName}
+        </span>
+      </div>
+      <div className="overflow-auto p-3">
+        {
+          messages.map((message) => {
+            return (
+              <div key={message.sid} className="chat chat-start">
+                <div className="chat-header">
+                  {message.author}
+                  <time className="text-xs opacity-50 ml-2">{message.dateCreated?.toLocaleDateString()}</time>
+                </div>
+                <div className="chat-bubble">{message.body}</div>
+              </div>
+            )
+          })
+        }
+      </div>
+      <div className="mt-3 p-3">
+        <input
+          type="text"
+          className="input input-bordered w-full"
+          placeholder="Chat here"
+          onKeyDown={(e) => {
+            if(e.key === 'Enter') {
+              conversation.sendMessage(e.currentTarget.value);
+              e.currentTarget.value = '';
+            }
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
