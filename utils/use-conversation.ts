@@ -138,12 +138,21 @@ export function useConversation() {
       newConversation = await convClient.current?.createConversation({
         uniqueName,
       });
+      newConversation?.join();
       return newConversation;
     } catch(e){
       console.log(e);
       console.log('Failed create conversation ' + uniqueName);
       alert("Failed create conversation "+ uniqueName);
     }
+  }
+
+  const signOut = () => {
+    convClient.current?.shutdown();
+    localStorage.removeItem("tokenSaved");
+    setClientState(undefined);
+    setConversations(undefined);
+    setSelectedConversation(undefined);
   }
 
   return {
@@ -153,5 +162,6 @@ export function useConversation() {
     selectedConversation,
     setSelectedConversation,
     joinOrCreateConverstaion: createConversation,
+    signOut,
   };
 }

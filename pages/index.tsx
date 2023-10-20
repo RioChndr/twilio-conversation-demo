@@ -9,11 +9,17 @@ export default function Home() {
     <main>
       <div className="flex gap-6 p-6">
         <div className="w-1/2">
-          <FormUser isDisabled={client.convClientState?.status === 'success'} onSubmit={(e) => {
+          <FormUser 
+            isDisabled={client.convClientState?.status === 'success'} 
+            onSubmit={(e) => {
             const username = e.currentTarget.username.value
             const password = e.currentTarget.password.value
             client.signIn(username, password);
-          }} />
+          }} 
+          onLogout={() => {
+            client.signOut();
+          }}
+          />
         </div>
         <div className="w-1/2 mt-12">
           <div className="border-2 border-gray-100 rounded-lg p-3">
@@ -46,9 +52,10 @@ export default function Home() {
   )
 }
 
-function FormUser({ isDisabled, onSubmit }: {
+function FormUser({ isDisabled, onSubmit, onLogout }: {
   isDisabled: boolean,
-  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void,
+  onLogout: ()=> void,
 }) {
   return (
     <form onSubmit={e => {
@@ -63,6 +70,9 @@ function FormUser({ isDisabled, onSubmit }: {
         <input disabled={isDisabled} type="password" name="password" className="input input-bordered" placeholder="Password" />
         <button disabled={isDisabled} className="btn btn-primary">
           Login
+        </button>
+        <button disabled={!isDisabled} className="btn btn-error" onClick={() => onLogout()}>
+          Logout
         </button>
       </div>
     </form>
@@ -134,6 +144,12 @@ function ConversationTag({conversation, onClick}: {conversation: Conversation, o
 function ChatRoom({ conversation }: { conversation: Conversation }) {
   const [messages, setMessages] = useState<Message[]>([]);
 
+  const addPariticant = (identity: string) => {
+    conversation.add(identity).then((member) => {
+      console.log(member);
+    })
+  }
+
   useEffect(() => {
     conversation?.getMessages()?.then((message) => {
       setMessages(message.items);
@@ -155,6 +171,12 @@ function ChatRoom({ conversation }: { conversation: Conversation }) {
         <span className="font-bold">
           {conversation.uniqueName}
         </span>
+        <input type="text" className="input input-bordered input-sm" placeholder="new participant" onKeyDown={(e) => {
+          if(e.key === 'Enter') {
+            addPariticant(e.currentTarget.value);
+            e.currentTarget.value = '';
+          }
+        }} />
       </div>
       <div className="overflow-auto p-3">
         {
