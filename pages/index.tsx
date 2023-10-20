@@ -98,12 +98,12 @@ function ConversationManager({ conversations, onClickConversation, selectedConve
 function ConversationTag({conversation, onClick}: {conversation: Conversation, onClick: (conversation: Conversation) => void}){
   const [messages, setMessages] = useState<Message[]>([]);
   useEffect(() => {
-    conversation.getMessages(1).then((message) => {
+    conversation?.getMessages(1)?.then((message) => {
       setMessages(message.items);
     })
     conversation.on('updated', ({updateReasons,conversation}) => {
       console.log(`${conversation.sid}, do update with reason ${updateReasons.join(',')}`);
-      conversation.getMessages(1).then((message) => {
+      conversation?.getMessages(1)?.then((message) => {
         setMessages(message.items);
       })
       // setMessages([messsage]);
@@ -135,7 +135,7 @@ function ChatRoom({ conversation }: { conversation: Conversation }) {
   const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
-    conversation.getMessages().then((message) => {
+    conversation?.getMessages()?.then((message) => {
       setMessages(message.items);
     })
     conversation.on('messageAdded', (message) => {

@@ -53,7 +53,6 @@ export function useConversation() {
 
   const afterSignIn = () => {
     setListener();
-    getListConversation();
   }
 
   const setListener = () => {
@@ -71,6 +70,7 @@ export function useConversation() {
           statusString: "You are connected.",
           status: "success",
         });
+        getListConversation();
       }
       if (state === "disconnecting") {
         setClientState({
@@ -116,6 +116,7 @@ export function useConversation() {
 
   const getListConversation = async () => {
     const listConversationFinal = []
+    if(!convClient.current) return;
     let listConversation = await convClient.current?.getSubscribedConversations();
     if(!listConversation) return;
     listConversationFinal.push(...listConversation.items);
