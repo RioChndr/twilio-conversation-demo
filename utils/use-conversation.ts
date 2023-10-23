@@ -15,6 +15,8 @@ export function useConversation() {
   const [selectedConversation, setSelectedConversation] = useState<
     Conversation
   >();
+  const backend = useCustomBackend();
+  const [keyConv, setKeyConv] = useState(0);
 
   useEffect(() => {
     const dataToken = localStorage.getItem("tokenSaved");
@@ -26,7 +28,9 @@ export function useConversation() {
     }
     convClient.current = new ConversationClient(token);
     afterSignIn();
-    return () => {}
+    return () => {
+      convClient.current?.shutdown();
+    }
   }, [])
   
 
@@ -65,13 +69,6 @@ export function useConversation() {
           status: "default",
         });
       }
-      if (state === "connected") {
-        setClientState({
-          statusString: "You are connected.",
-          status: "success",
-        });
-        getListConversation();
-      }
       if (state === "disconnecting") {
         setClientState({
           statusString: "Disconnecting from Twilio…",
@@ -93,6 +90,15 @@ export function useConversation() {
           status: "error",
         });
       }
+      if (state === "connected") {
+        setClientState({
+          statusString: "You are connected.",
+          status: "success",
+        });
+        backend.getListConversation(convClient.current!).then((res) => {
+          setConversations(res);
+        });
+      }
     });
     convClient.current.on("conversationJoined", (conversation) => {
       setConversations((prev) => {
@@ -110,10 +116,22 @@ export function useConversation() {
     });
     convClient.current.on("messageAdded", (message) => {
       console.log(`New message, from ${message.author}, ${message.conversation.sid} : ${message.body}`);
-      getListConversation();
+
+      moveToTopConversation(message.conversation);
+      setKeyConv((prev) => prev + 1);
     })
   };
 
+  const moveToTopConversation = async (conv: Conversation) => {
+    setConversations((prev) => {
+      if(!prev) return;
+      const newConversations = prev.filter((conversation) => conversation !== conv);
+      newConversations.unshift(conv);
+      return newConversations;
+    });
+  }
+
+  /** @kind get list conversation from twilio backend */
   const getListConversation = async () => {
     const listConversationFinal = []
     if(!convClient.current) return;
@@ -129,6 +147,7 @@ export function useConversation() {
       const bLastMessage = b.lastMessage?.dateCreated?.getTime() || 0;
       return bLastMessage - aLastMessage;
     })
+    console.log(listConversationFinal)
     setConversations(listConversationFinal);
   }
 
@@ -163,5 +182,24 @@ export function useConversation() {
     setSelectedConversation,
     joinOrCreateConverstaion: createConversation,
     signOut,
+    convClient,
+    keyConv,
   };
+}
+
+function useCustomBackend(){
+  const getListConversation = async (convClientTwilio: ConversationClient) : Promise<Conversation[]> => {
+    const res: {
+      sid: string;
+      uniqueName: string;
+    }[] = await (await fetch('/api/list-conv')).json();
+
+    return await Promise.all(res.map((conv) => {
+      return convClientTwilio.getConversationBySid(conv.sid);
+    }))
+  }
+
+  return {
+    getListConversation
+  }
 }

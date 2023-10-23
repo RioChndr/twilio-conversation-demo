@@ -95,7 +95,7 @@ function ConversationManager({ conversations, onClickConversation, selectedConve
     <div className="flex m-3 gap-3">
       <div className="w-4/12 border-2 p-3 border-gray-200 rounded-lg flex flex-col max-h-[80vh] overflow-auto">
         {conversations.map((item, index) => (
-          <ConversationTag key={item.sid} conversation={item} onClick={onClickConversation}/>
+          <ConversationTag key={index} conversation={item} onClick={onClickConversation}/>
         ))}
       </div>
       <div className="w-8/12 border-2 border-gray-200 rounded-lg">
